@@ -1,36 +1,44 @@
 import ecg_plot
-from matplotlib import pyplot as plt
 from os import listdir
 import wfdb
 from ast import literal_eval
 from ecg_model.params import *
+import pandas as pd
 
 def read_report():
-    df = pd.read_csv('ecg_photo/raw_data/ptbxl_database.csv')
+    """
+    Read csv containing the documentation of the images with labels with diseases or abnormalities
+    detected on the image. Save transformed data as csv file.
+    """
+    df = pd.read_csv("../" + RAW_DATA_FOLDER + '/ptbxl_database.csv')
     df["scp_codes"] = df["scp_codes"].apply(lambda x: literal_eval(x))
     df = pd.concat([df[['ecg_id','filename_hr','age','sex','height','weight','report','scp_codes']],
            pd.DataFrame(df['scp_codes'].tolist())], axis=1)
     df["filename_hr"] = df["filename_hr"].apply(lambda x: x.split("/")[-1])
-    df.to_csv('../raw_data')
+    df["normal"]  = np.where(df['NORM']>=80, 1, 0)
+    df.to_csv("../" + EXPORTED_DATA_FOLDER + "/scp_codes.csv",sep=";")
 
 def read_data():
-    filepath="../raw_data/records500"
-    imagepath="../raw_data/images/"
-    for subdir, dirs, files in os.walk(filepath):
+    """
+    Read .dat and .hea input files, create a visual representation of data and save the
+    information as a .jpg file.
+    """
+    input_filepath= "../" + RAW_DATA_FOLDER
+    output_imagepath= "../" + EXPORTED_DATA_FOLDER + "/"
+    # Check if image destination directory exists, if not, create it
+    if not os.path.exists(output_imagepath):
+        os.makedirs(output_imagepath)
+
+    for subdir, dirs, files in os.walk(input_filepath):
         for dir in dirs:
-            datfiles = [file.replace(".dat","") for file in listdir(filepath + "/" + dir) if file.lower().endswith(('.dat'))]
+            datfiles = [file.replace(".dat","") for file in listdir(input_filepath + "/" + dir) if file.lower().endswith(('.dat'))]
             for file in datfiles:
-                record = wfdb.rdrecord(filepath +"/"+ dir +"/"+ file)
+                record = wfdb.rdrecord(input_filepath +"/"+ dir +"/"+ file)
                 signal = record.p_signal.T
                 ecg_plot.plot(signal, sample_rate=record.fs, title="", show_lead_name=True, row_height=10,style="bw",
                             show_grid=False, columns=2)
-                ecg_plot.save_as_jpg(file, imagepath)
-
-
-
-    pass
-
-
+                ecg_plot.save_as_jpg(file, output_imagepath)
 
 if __name__ == '__main__':
     read_data()
+    read_report()
