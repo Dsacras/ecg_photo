@@ -3,6 +3,7 @@ pandas
 ecg_plot
 matplotlib
 wfdb
+google-cloud-storage
 
 ipython
 ipykernel
