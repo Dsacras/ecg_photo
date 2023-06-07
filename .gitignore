@@ -2,4 +2,7 @@ raw_data/
 .env
 .DS_Store
 .python-version
-ecg-model.egg-info/
+ecg_model.egg-info/PKG-INFO
+ecg_model.egg-info/SOURCES.txt
+ecg_model.egg-info/dependency_links.txt
+ecg_model.egg-info/top_level.txt
