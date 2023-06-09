@@ -31,13 +31,25 @@ def read_data():
 
     for subdir, dirs, files in os.walk(input_filepath):
         for dir in dirs:
+            output_imagepath= "../" + EXPORTED_DATA_FOLDER + "/" + dir +"/"
             datfiles = [file.replace(".dat","") for file in listdir(input_filepath + "/" + dir) if file.lower().endswith(('.dat'))]
-            for file in datfiles:
-                record = wfdb.rdrecord(input_filepath +"/"+ dir +"/"+ file)
-                signal = record.p_signal.T
-                ecg_plot.plot(signal, sample_rate=record.fs, title="", show_lead_name=True, row_height=10,style="bw",
-                            show_grid=False, columns=2)
-                ecg_plot.save_as_jpg(file, output_imagepath)
+            datfiles_count = len(datfiles)
+
+            if not os.path.exists(output_imagepath):
+                os.makedirs(output_imagepath)
+            else:
+                _, _, img = next(os.walk(output_imagepath))
+                img_count = len(img)
+
+            if int(datfiles_count) != int(img_count):
+                jpgfiles = [file.replace(".jpg","") for file in listdir(output_imagepath)]
+                for file in datfiles:
+                    if jpgfiles==[] or file not in jpgfiles:
+                        record = wfdb.rdrecord(input_filepath +"/"+ dir +"/"+ file)
+                        signal = record.p_signal.T
+                        ecg_plot.plot(signal, sample_rate=record.fs, title="", show_lead_name=True, row_height=10,style="bw",
+                                    show_grid=False, columns=2)
+                        ecg_plot.save_as_jpg(file, output_imagepath)
 
 if __name__ == '__main__':
     read_data()

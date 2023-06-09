@@ -3,6 +3,8 @@ pandas
 ecg_plot
 matplotlib
 wfdb
+opencv-python
+
 
 ipython
 ipykernel
