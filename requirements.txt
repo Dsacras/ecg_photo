@@ -4,7 +4,9 @@ ecg_plot
 matplotlib
 wfdb
 opencv-python
-
+ast
+scipy.io
+os
 
 ipython
 ipykernel
