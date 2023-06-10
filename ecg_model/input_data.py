@@ -43,10 +43,10 @@ def read_dat_data():
     for subdir, dirs, files in os.walk(input_filepath):
         for dir in dirs:
             output_imagepath= EXPORTED_DATA_FOLDER + dir +"/"
-            print(input_filepath+ dir)
+
             datfiles = [file.replace(".dat","") for file in listdir(input_filepath + dir) if file.lower().endswith(('.dat'))]
             datfiles_count = len(datfiles)
-            print(datfiles_count)
+
             if not os.path.exists(output_imagepath):
                 os.makedirs(output_imagepath)
                 img_count=0
@@ -84,21 +84,21 @@ def read_mat_data():
     # Check if image destination directory exists, if not, create it
     if not os.path.exists(output_imagepath):
         os.makedirs(output_imagepath)
-    print(input_filepath)
+
     for subdir, dirs, files in os.walk(input_filepath):
 
-        datfiles = [file for file in os.listdir(input_filepath) if file.lower().endswith(('.mat'))]
-        datfiles_count = len(datfiles)
+        matfiles = [file for file in os.listdir(input_filepath) if file.lower().endswith(('.mat'))]
+        matfiles_count = len(matfiles)
 
         if not os.path.exists(output_imagepath):
             os.makedirs(output_imagepath)
         else:
             _, _, img = next(os.walk(output_imagepath))
             img_count = len(img)
-        print(datfiles_count)
-        if int(datfiles_count) != int(img_count):
+
+        if int(matfiles_count) != int(img_count):
             jpgfiles = [file.replace(".jpg","") for file in os.listdir(output_imagepath)]
-            for file in datfiles:
+            for file in matfiles:
                 if jpgfiles==[] or file not in jpgfiles:
                     data_mat=loadmat(input_filepath +"/"+  file)
                     signal = data_mat["ECG"]['data'][0,0][:,:5000]
