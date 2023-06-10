@@ -5,6 +5,12 @@ matplotlib
 wfdb
 opencv-python
 
+scikit-learn
+torch
+datasets
+torchvision
+transformers
+transformers[torch]
 
 ipython
 ipykernel
