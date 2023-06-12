@@ -2,7 +2,7 @@ from data import load_data
 import datasets
 from sklearn.model_selection import train_test_split
 from transformers import AutoFeatureExtractor, AutoModelForImageClassification
-from ecg_model.params import *
+from ecg_model.params import MODEL_NAME
 # from preprocessor import preprocess
 import torch
 from transformers import  AutoModelForImageClassification, TrainingArguments, Trainer

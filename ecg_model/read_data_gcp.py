@@ -1,9 +1,7 @@
-import glob
-import os
 from google.cloud import storage
 from ecg_model.params import GCP_IMG_FOLDER, GCP_PROJECT, BUCKET_NAME
 from upload_cloud import list_gcp_files
-from PIL import Image, ImageFile
+from PIL import Image
 from io import BytesIO
 import pandas as pd
 
