@@ -104,7 +104,3 @@ def read_mat_data():
                     signal = data_mat["ECG"]['data'][0,0][:,:5000]
                     save_image(signal, 500, file, output_imagepath)
     read_mat_report()
-
-if __name__ == '__main__':
-    read_dat_data()
-    read_mat_data()
