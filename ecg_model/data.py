@@ -37,7 +37,7 @@ class CustomDataset():
 class CustomDatasetUrl():
     def __init__(self, imgs_url, csv_file, transform=None, start_idx=None, end_idx=None):
         self.imgs = imgs_url
-        self.csv = pd.read_csv(f"https://storage.googleapis.com/{BUCKET_NAME}/{GCP_IMG_FOLDER}/{csv_file}", delimiter=';')
+        self.csv = pd.read_csv(f"https://storage.googleapis.com/ecg_photo/images/{csv_file}", delimiter=';')
         self.transform = transform
         self.start_idx = start_idx
         self.end_idx = end_idx
@@ -52,7 +52,7 @@ class CustomDatasetUrl():
         img_name = self.csv.iloc[idx, self.csv.columns.get_loc('filename_hr')]
         target = self.csv.iloc[idx, self.csv.columns.get_loc('normal')]
 
-        link = f"https://storage.googleapis.com/{BUCKET_NAME}/{GCP_IMG_FOLDER}/{img_name}.jpg"
+        link = f"https://storage.googleapis.com/ecg_photo/images/{img_name}.jpg"
         response = requests.get(link)
         if response is not None:
             image = Image.open(BytesIO(response.content)).convert('RGB')
