@@ -72,7 +72,6 @@ def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_da
                     best_val_acc = epoch_acc
                     torch.save(model.state_dict(), best_model_params_path)
 
-            print()
 
         time_elapsed = time.time() - since
         print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')

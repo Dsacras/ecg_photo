@@ -22,13 +22,12 @@ def execute_model():
 
     # dataset = CustomDataset(imgs_path, csv_path, transform, 0, 2048)
     dataset = CustomDatasetUrl(imgs_path, csv_file, transform, 0, 10)
-    print(dataset)
+
     num_samples = len(dataset)
-    print(num_samples)
     num_val = int(val_split * num_samples)
     num_test = int(test_split * num_samples)
     num_train = num_samples - num_val - num_test
-    print(num_train)
+
     train_dataset, val_dataset, test_dataset = random_split(dataset, [num_train, num_val, num_test])
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
