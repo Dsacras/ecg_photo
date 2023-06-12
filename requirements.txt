@@ -3,6 +3,8 @@ pandas
 ecg_plot
 matplotlib
 wfdb
+google-cloud-storage
+
 opencv-python
 ast
 scipy.io
