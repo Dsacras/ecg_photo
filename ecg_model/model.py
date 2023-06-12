@@ -1,105 +1,139 @@
-from data import load_data
-import datasets
-from sklearn.model_selection import train_test_split
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification
-from ecg_model.params import MODEL_NAME
-# from preprocessor import preprocess
+import os
+import time
 import torch
-from transformers import  AutoModelForImageClassification, TrainingArguments, Trainer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES=True
+from tempfile import TemporaryDirectory
 
 
-def split_dataset():
-    """
-    Load data from the files, split the dataset into training, evaluation and test,
-    preprocess the data
-    """
-    labels_csv="scp_codes.csv"
-    MODEL_NAME = os.environ.get("MODEL_NAME")
+def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs):
+    since = time.time()
 
-    images, labels = load_data(labels_csv)
-    train_X, hold_X, train_y, hold_y = train_test_split(images, labels, test_size=0.2)
-    eval_X, test_X, eval_y, test_y = train_test_split(hold_X, hold_y, test_size=0.5)
+    # Create a temporary directory to save training checkpoints
+    with TemporaryDirectory() as tempdir:
+        best_model_params_path = os.path.join(tempdir, 'best_model_params.pt')
 
-    train_dataset = datasets.Dataset.from_dict({"image": train_X, "label": train_y})
-    eval_dataset = datasets.Dataset.from_dict({"image": eval_X, "label": eval_y})
-    test_dataset = datasets.Dataset.from_dict({"image": test_X, "label": test_y})
+        torch.save(model.state_dict(), best_model_params_path)
+        best_val_acc = 0.0
 
-    # train_dataset = preprocess(train_dataset)
-    # eval_dataset = preprocess(eval_dataset)
-    # test_dataset = preprocess(test_dataset)
+        for epoch in range(num_epochs):
+            print(f'Epoch {epoch}/{num_epochs - 1}')
+            print('-' * 10)
 
-    # train_dataset.set_transform(preprocess)
-    # eval_dataset.set_transform(preprocess)
-    # test_dataset.set_transform(preprocess)
+            # Each epoch has a training and validation phase
+            for phase in ['train', 'val']:
+                if phase == 'train':
+                    model.train()  # Set model to training mode
+                    dataloader = train_dataloader
+                else:
+                    model.eval()   # Set model to evaluate mode
+                    dataloader = val_dataloader
 
-    print(train_dataset)
-    return train_dataset, eval_dataset, test_dataset
+                running_loss = 0.0
+                running_corrects = 0
 
-def initiate_model():
-    MODEL_NAME = os.environ.get("MODEL_NAME")
+                # Iterate over data.
+                for inputs, labels in dataloader:
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
 
-    model = AutoModelForImageClassification.from_pretrained(
-    MODEL_NAME,
-    label2id = {'Normal': 1, 'Abnormal': 0},
-    id2label = {'1': 'Normal', '0': 'Abnormal'},
-    ignore_mismatched_sizes = True)
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
 
-    print("Model initiated")
+                    # forward
+                    # track history if only in train
+                    with torch.set_grad_enabled(phase == 'train'):
+                        outputs = model(inputs)
+                        _, preds = torch.max(outputs, 1)
+                        loss = criterion(outputs, labels)
 
+                        # backward + optimize only if in training phase
+                        if phase == 'train':
+                            loss.backward()
+                            optimizer.step()
+
+                    # statistics
+                    running_loss += loss.item() * inputs.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
+
+                if phase == 'train':
+                    scheduler.step()
+
+                epoch_loss = running_loss / len(dataloader.dataset)
+                epoch_acc = running_corrects.double() / len(dataloader.dataset)
+
+                print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+
+                # Save the best model on the validation set
+                if phase == 'val' and epoch_acc > best_val_acc:
+                    best_val_acc = epoch_acc
+                    torch.save(model.state_dict(), best_model_params_path)
+
+            print()
+
+        time_elapsed = time.time() - since
+        print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+        print(f'Best val Acc: {best_val_acc:.4f}')
+
+        # Load the best model weights
+        model.load_state_dict(torch.load(best_model_params_path))
     return model
 
-def compute_metrics(eval_pred):
-    """Computes accuracy on a batch of predictions"""
-    metric = datasets.load_metric("accuracy")
-    predictions = np.argmax(eval_pred.predictions, axis=1)
-    return metric.compute(predictions=predictions, references=eval_pred.label_ids)
+def evaluate_model(model, criterion, test_dataloader, device):
+    model.eval()  # Set model to evaluation mode
+    running_loss = 0.0
+    running_corrects = 0
 
-def collate_fn(examples):
-    pixel_values = torch.stack([example["pixel_values"] for example in examples])
-    labels = torch.tensor([example["label"] for example in examples])
-    return {"pixel_values": pixel_values, "labels": labels}
+    # Iterate over data
+    for inputs, labels in test_dataloader:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
-def evaluate_model(test_dataset):
-    return trainer.evaluate(test_dataset)
+        # Forward pass
+        with torch.no_grad():
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
 
-def train_model(model):
-    train_dataset, eval_dataset, test_dataset = split_dataset()
-    MODEL_NAME = os.environ.get("MODEL_NAME")
+        # Statistics
+        running_loss += loss.item() * inputs.size(0)
+        running_corrects += torch.sum(preds == labels.data)
 
-    training_args = TrainingArguments(
-        output_dir="./output",
-        remove_unused_columns=False,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        learning_rate=5e-5,
-        per_device_train_batch_size=32,
-        per_device_eval_batch_size=32,
-        num_train_epochs=5,
-        warmup_ratio=0.1,
-        logging_steps=10,
-        load_best_model_at_end=True,
-        metric_for_best_model="accuracy"
-        )
+    # Calculate overall metrics
+    test_loss = running_loss / len(test_dataloader.dataset)
+    test_acc = running_corrects.double() / len(test_dataloader.dataset)
 
-    extractor = AutoFeatureExtractor.from_pretrained(MODEL_NAME)
+    print(f'Test Loss: {test_loss:.4f} Test Acc: {test_acc:.4f}')
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        tokenizer=extractor,
-        compute_metrics=compute_metrics,
-        data_collator=collate_fn,
-    )
+    return test_loss, test_acc
 
-    trainer.train()
-    evaluation = evaluate_model(test_dataset)
+def visualize_model(model, dataloader, device, num_images=6):
+    was_training = model.training
+    model.eval()
+    images_so_far = 0
+    fig = plt.figure(figsize=(10, 12))
+    class_names = ['Abnormal', 'Normal']
 
-    return trainer, evaluation
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloader):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
 
-if __name__ == '__main__':
-    model = initiate_model()
-    train_model(model)
-    # split_dataset()
+            for j in range(inputs.size()[0]):
+                images_so_far += 1
+                ax = plt.subplot(num_images//2, 2, images_so_far)
+                ax.axis('off')
+                ax.set_title(f'predicted: {class_names[preds[j]]}')
+                image = inputs.cpu().data[j].permute(1, 2, 0)
+                ax.imshow(Image.fromarray((image * 255).numpy().astype(np.uint8)))
+
+                if images_so_far == num_images:
+                    model.train(mode=was_training)
+                    return
+        model.train(mode=was_training)

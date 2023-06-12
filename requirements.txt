@@ -4,6 +4,7 @@ ecg_plot
 matplotlib
 wfdb
 google-cloud-storage
+requests
 
 scikit-learn
 torch
