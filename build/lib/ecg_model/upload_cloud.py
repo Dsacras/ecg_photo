@@ -3,28 +3,23 @@ import os
 from google.cloud import storage
 from ecg_model.params import *
 
-client = storage.Client()
-
-def upload_from_directory(folder_path: str):
-    print(RAW_DATA_FOLDER)
-    print(TEST)
+def list_gcp_files(storage_folder: str):
     client = storage.Client(project=GCP_PROJECT)
-    bucket = bucket(BUCKET_NAME)
-    # dest_blob_name: str
+    return [blob.name.split("/")[-1] for blob in client.list_blobs(BUCKET_NAME, prefix=storage_folder)]
 
-    for local_file in folder_path:
-        print(local_file)
-        # remote_path = f'{dest_blob_name}/{"/".join(local_file.split(os.sep)[1:])}'
-        # if os.path.isfile(local_file):
-        #     blob = bucket.blob(f"input_images/{model_filename}")
-        #     blob.upload_from_filename(local_file)
+def upload_from_directory(storage_folder: str, folder_path: str, upload_type: str):
+    client = storage.Client(project=GCP_PROJECT)
+    if upload_type == "insert":
+        file_list = list_gcp_files(storage_folder)
 
-def upload_file(folder_name: str):
-    model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
-    client = storage.Client()
+    for _, _, files in os.walk(folder_path):
+        for file in files:
+            if file not in file_list:
+                upload_file(storage_folder, folder_path + "/" + str(file))
+
+def upload_file(storage_folder: str, file_path: str):
+    client = storage.Client(project=GCP_PROJECT)
     bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob(f"{folder_name}/{model_filename}")
-    blob.upload_from_filename(model_path)
-
-if __name__ == '__main__':
-    upload_from_directory("../raw_data/test")
+    file_name = file_path.split("/")[-1]
+    blob = bucket.blob(f"{storage_folder}/{file_name}")
+    blob.upload_from_filename(file_path)
