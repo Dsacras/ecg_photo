@@ -3,7 +3,7 @@ pandas
 ecg_plot
 matplotlib
 wfdb
-opencv-python
+google-cloud-storage
 
 scikit-learn
 torch
@@ -11,6 +11,10 @@ datasets
 torchvision
 transformers
 transformers[torch]
+opencv-python
+ast
+scipy.io
+os
 
 ipython
 ipykernel
