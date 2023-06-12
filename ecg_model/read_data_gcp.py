@@ -12,11 +12,9 @@ def read_data_gcp():
     images = []
     client = storage.Client(project=GCP_PROJECT)
     bucket = client.bucket(BUCKET_NAME)
-    print(file_list)
     for file in file_list:
         blob_file = bucket.get_blob(GCP_IMG_FOLDER + "/" + file)
         if file.endswith(".jpg"):
-            # blob_img = bucket.get_blob(GCP_IMG_FOLDER + "/" + file)
             image = Image.open(BytesIO(blob_file.download_as_bytes()))
             images.append(image)
             image.close()
