@@ -33,8 +33,7 @@ class CustomDataset():
 
 
 class CustomDatasetUrl():
-    def __init__(self, imgs_url, csv_file, transform=None, start_idx=None, end_idx=None):
-        self.imgs = imgs_url
+    def __init__(self, csv_file, transform=None, start_idx=None, end_idx=None):
         self.csv = pd.read_csv(f"https://storage.googleapis.com/ecg_photo/images/{csv_file}", delimiter=';')
         self.transform = transform
         self.start_idx = start_idx

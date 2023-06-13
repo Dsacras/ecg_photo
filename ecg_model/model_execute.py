@@ -4,10 +4,9 @@ from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from torchvision import models
 from model import train_model, evaluate_model
+from save_load import save_model
 
 def execute_model():
-    imgs_path = './ECGs/'
-    csv_path = './scp_codes.csv'
     csv_file = 'scp_codes.csv'
 
     batch_size = 32
@@ -20,8 +19,7 @@ def execute_model():
         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    # dataset = CustomDataset(imgs_path, csv_path, transform, 0, 2048)
-    dataset = CustomDatasetUrl(imgs_path, csv_file, transform, 0, 2048)
+    dataset = CustomDatasetUrl(csv_file, transform, 0, 10)
 
     num_samples = len(dataset)
     num_val = int(val_split * num_samples)
@@ -51,9 +49,11 @@ def execute_model():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=8)
+    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=1)
 
     evaluate_model(model, criterion, test_dataloader, device)
+
+    save_model(model)
 
 if __name__ == '__main__':
     execute_model()
