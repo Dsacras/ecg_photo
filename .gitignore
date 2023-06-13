@@ -6,3 +6,4 @@ ecg_model.egg-info/PKG-INFO
 ecg_model.egg-info/SOURCES.txt
 ecg_model.egg-info/dependency_links.txt
 ecg_model.egg-info/top_level.txt
+__pycache__
