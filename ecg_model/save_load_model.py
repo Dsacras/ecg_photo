@@ -23,7 +23,6 @@ def save_model(model):
 
     print("Model saved to GCS")
 
-
     return None
 
 

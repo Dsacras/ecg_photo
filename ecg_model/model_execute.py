@@ -4,7 +4,7 @@ from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from torchvision import models
 from model import train_model, evaluate_model
-from save_load import save_model
+
 
 def execute_model():
     csv_file = 'scp_codes.csv'
@@ -53,7 +53,6 @@ def execute_model():
 
     evaluate_model(model, criterion, test_dataloader, device)
 
-    save_model(model)
 
 if __name__ == '__main__':
     execute_model()
