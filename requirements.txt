@@ -1,6 +1,6 @@
 wheel
 pandas
-ecg_plot
+ecg-plot
 matplotlib
 wfdb
 google-cloud-storage
@@ -11,11 +11,9 @@ torch
 datasets
 torchvision
 transformers
-transformers[torch]
 opencv-python
-ast
-scipy.io
-os
+scipy
+torch
 
 ipython
 ipykernel

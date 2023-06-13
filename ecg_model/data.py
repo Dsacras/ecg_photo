@@ -1,10 +1,8 @@
-from ecg_model.params import *
 import pandas as pd
 import os
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES=True
 from io import BytesIO
-from ecg_model.params import GCP_IMG_FOLDER, GCP_PROJECT
 import requests
 
 class CustomDataset():

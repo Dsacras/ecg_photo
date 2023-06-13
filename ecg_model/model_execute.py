@@ -21,7 +21,7 @@ def execute_model():
     ])
 
     # dataset = CustomDataset(imgs_path, csv_path, transform, 0, 2048)
-    dataset = CustomDatasetUrl(imgs_path, csv_file, transform, 0, 10)
+    dataset = CustomDatasetUrl(imgs_path, csv_file, transform, 0, 2048)
 
     num_samples = len(dataset)
     num_val = int(val_split * num_samples)
@@ -38,14 +38,20 @@ def execute_model():
 
     model = models.resnet18(weights='IMAGENET1K_V1')
     num_ftrs = model.fc.in_features
-    model.fc = torch.nn.Linear(num_ftrs, 2)
-
+    fc = torch.nn.Sequential(
+        torch.nn.Linear(num_ftrs, 512),
+        torch.nn.ReLU(inplace=True),
+        torch.nn.Dropout(0.75),
+        torch.nn.Linear(512, 2)
+    )
+    model.fc = fc
     model = model.to(device)
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=5)
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+
+    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=8)
 
     evaluate_model(model, criterion, test_dataloader, device)
 
