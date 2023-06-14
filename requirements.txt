@@ -19,3 +19,4 @@ ipython
 ipykernel
 
 python-dotenv
+python-multipart

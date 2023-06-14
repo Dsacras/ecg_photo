@@ -4,14 +4,14 @@ from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from torchvision import models
 from model import train_model, evaluate_model
-
+from save_load_model import save_model
 
 def execute_model():
     csv_file = 'scp_codes.csv'
 
     batch_size = 32
-    val_split = 0.2
-    test_split = 0.1
+    val_split = 0.15
+    test_split = 0.15
 
     transform = Compose([
         Resize((224, 224)),
@@ -19,7 +19,7 @@ def execute_model():
         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    dataset = CustomDatasetUrl(csv_file, transform, 0, 10)
+    dataset = CustomDatasetUrl(csv_file, transform)
 
     num_samples = len(dataset)
     num_val = int(val_split * num_samples)
@@ -36,23 +36,18 @@ def execute_model():
 
     model = models.resnet18(weights='IMAGENET1K_V1')
     num_ftrs = model.fc.in_features
-    fc = torch.nn.Sequential(
-        torch.nn.Linear(num_ftrs, 512),
-        torch.nn.ReLU(inplace=True),
-        torch.nn.Dropout(0.75),
-        torch.nn.Linear(512, 2)
-    )
-    model.fc = fc
+    model.fc = torch.nn.Linear(num_ftrs, 2)
     model = model.to(device)
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0003)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=1)
+    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=10)
 
     evaluate_model(model, criterion, test_dataloader, device)
 
+    save_model(model)
 
 if __name__ == '__main__':
     execute_model()

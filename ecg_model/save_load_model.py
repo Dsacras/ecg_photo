@@ -8,20 +8,34 @@ def save_model(model):
     timestamp = time.strftime("%Y%m%d-%H%M%S")
 
     # Save model locally
-    model_filename = f"model_{timestamp}"
-    model_path = f"../raw_data/models/{model_filename}"
-    if not os.path.exists("../raw_data/models"):
-        os.makedirs("../raw_data/models")
-    torch.save(model.state_dict(), model_path)
+    if not os.path.exists("raw_data/final_models"):
+        os.makedirs("raw_data/final_models")
 
-    print("Model saved locally")
+    #save model
+    model_filename = f"model_{timestamp}"
+    model_path = f"raw_data/final_models/{model_filename}.pt"
+    torch.save(model, model_path)
 
     client = storage.Client()
     bucket = client.bucket("ecg_photo")
-    blob = bucket.blob(f"models/{model_filename}")
+    blob = bucket.blob(f"final_models/{model_filename}")
     blob.upload_from_filename(model_path)
 
     print("Model saved to GCS")
+
+    #save params
+    model_filename = f"model_param_{timestamp}"
+    model_path = f"raw_data/final_models/{model_filename}.pth"
+    torch.save(model.state_dict(), model_path)
+
+    print("Params saved locally")
+
+    client = storage.Client()
+    bucket = client.bucket("ecg_photo")
+    blob = bucket.blob(f"final_models/{model_filename}")
+    blob.upload_from_filename(model_path)
+
+    print("Params saved to GCS")
 
     return None
 
