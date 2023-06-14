@@ -7,7 +7,7 @@ import torch
 from io import BytesIO
 
 def load_model():
-    latest_model_path_to_save = "model_20230614-124525.pt"
+    latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
     latest_model = torch.load(latest_model_path_to_save)
     return latest_model
 
