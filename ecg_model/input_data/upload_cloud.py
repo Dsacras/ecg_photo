@@ -1,4 +1,3 @@
-import glob
 import os
 from google.cloud import storage
 from ecg_model.params import *
@@ -23,3 +22,6 @@ def upload_file(storage_folder: str, file_path: str):
     file_name = file_path.split("/")[-1]
     blob = bucket.blob(f"{storage_folder}/{file_name}")
     blob.upload_from_filename(file_path)
+
+if __name__ == '__main__':
+    upload_from_directory("images","../raw_data/new_images500","insert")

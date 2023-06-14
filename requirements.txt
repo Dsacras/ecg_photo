@@ -1,8 +1,19 @@
 wheel
 pandas
-ecg_plot
+ecg-plot
 matplotlib
 wfdb
+google-cloud-storage
+requests
+
+scikit-learn
+torch
+datasets
+torchvision
+transformers
+opencv-python
+scipy
+torch
 
 ipython
 ipykernel
