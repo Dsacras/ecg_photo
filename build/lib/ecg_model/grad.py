@@ -3,7 +3,6 @@ from matplotlib import colormaps
 import numpy as np
 import PIL
 import torch.nn.functional as F
-import torch
 import matplotlib.pyplot as plt
 
 def ecg_grad(model, input_img_pred, image):

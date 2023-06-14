@@ -56,7 +56,7 @@ async def predict(file: UploadFile):
     predicted_class = class_names[predicted_label]
     print(predicted_class)
     grad_image = ecg_grad(app.state.model, img_processed, X_img)
-    print(type(grad_image))
-    response = FileResponse("03001_hr.jpg")
+    # print(type(grad_image))
+    response = FileResponse(grad_image)
     response.headers["prediction"] = predicted_class
     return response
