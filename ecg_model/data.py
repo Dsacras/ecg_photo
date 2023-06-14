@@ -52,8 +52,12 @@ class CustomDatasetUrl():
         link = f"https://storage.googleapis.com/ecg_photo/images/{img_name}.jpg"
         response = requests.get(link)
         if response is not None:
-            image = Image.open(BytesIO(response.content)).convert('RGB')
-            if self.transform:
-                image = self.transform(image)
-            return image, target
+            try:
+                image = Image.open(BytesIO(response.content)).convert('RGB')
+                if self.transform:
+                    image = self.transform(image)
+                return image, target
+            except:
+                print(f"IMG: {img_name}")
+
         return self.__getitem__(idx + 1)
