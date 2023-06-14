@@ -1,10 +1,12 @@
 from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from google.cloud import storage
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from io import BytesIO
+from ecg_model.grad import ecg_grad
 
 def load_model():
     latest_model_path_to_save = "model_20230614-124525.pt"
@@ -36,9 +38,6 @@ app.add_middleware(
 async def predict(file: UploadFile):
     class_names = ['Abnormal', 'Normal']
 
-    # img_path = "03001_hr.jpg"
-
-    # X_img = Image.open(file).convert('RGB')
     file_request = await file.read()
     X_img = Image.open(BytesIO(file_request)).convert('RGB')
     img_processed = transformation(X_img)
@@ -56,4 +55,8 @@ async def predict(file: UploadFile):
     predicted_label = predicted.item()
     predicted_class = class_names[predicted_label]
     print(predicted_class)
-    return predicted_class
+    grad_image = ecg_grad(app.state.model, img_processed, X_img)
+    print(type(grad_image))
+    response = FileResponse("03001_hr.jpg")
+    response.headers["prediction"] = predicted_class
+    return response
