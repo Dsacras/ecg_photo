@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES=True
 from tempfile import TemporaryDirectory
-from ecg_model.save_load_model import load_model
+from save_load_model import load_model
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 
 def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs):
