@@ -10,13 +10,14 @@ scikit-learn
 torch
 datasets
 torchvision
-transformers
 opencv-python
 scipy
-torch
 
 ipython
 ipykernel
 
 python-dotenv
 python-multipart
+
+uvicorn
+fastapi
