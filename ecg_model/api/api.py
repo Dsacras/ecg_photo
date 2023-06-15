@@ -6,18 +6,8 @@ from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from io import BytesIO
 from ecg_model.grad import ecg_grad
-from torchvision.utils import save_image
-from torch.utils import model_zoo
+from ecg_model.save_load_model import load_model_url
 
-
-def load_model():
-    # latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
-    # latest_model = torch.load(latest_model_path_to_save)
-    link = "https://storage.googleapis.com/ecg_photo/final_models/model_20230614-172857"
-    model = model_zoo.load_url(link)
-    torch.save(model, "ecg_model/api/model.pt")
-    print(type(model))
-    return model
 
 def transformation(image):
     transform = Compose([
@@ -28,7 +18,7 @@ def transformation(image):
     return transform(image)
 
 app = FastAPI()
-app.state.model = load_model()
+
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -40,10 +30,11 @@ app.add_middleware(
 )
 
 @app.post("/predict")
-async def predict(file: UploadFile):
+async def predict(file: UploadFile, model_url):
     class_names = ['Abnormal', 'Normal']
 
     file_request = await file.read()
+    app.state.model = load_model_url(model_url)
     X_img = Image.open(BytesIO(file_request)).convert('RGB')
     img_processed = transformation(X_img)
     img_processed = img_processed.unsqueeze(0)
@@ -61,10 +52,6 @@ async def predict(file: UploadFile):
     predicted_class = class_names[predicted_label]
     print(predicted_class)
     ecg_grad(app.state.model, img_processed, X_img)
-    # print(f"GRAD1 :{type(grad_image)}")
-    # save_image(grad_image[0], 'ecg_model/api/grad_img.jpg')
-    # print(f"GRAD :{type(grad_image)}")
-    # grad_image.save("ecg_model/api/grad_img.jpg")
     response = FileResponse("ecg_model/api/grad_cam.jpg")
     response.headers["prediction"] = predicted_class
     return response

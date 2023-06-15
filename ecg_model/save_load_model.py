@@ -2,6 +2,7 @@ import os
 import time
 from google.cloud import storage
 import torch
+from torch.utils import model_zoo
 
 def save_model(model):
 
@@ -65,3 +66,11 @@ def load_model():
         print(f"\nNo model found in GCS bucket models")
 
     return None
+
+def load_model_url(url):
+    # latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
+    # latest_model = torch.load(latest_model_path_to_save)
+    link = url
+    model = model_zoo.load_url(link)
+    torch.save(model, "ecg_model/api/model.pt")
+    return model
