@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES=True
 from tempfile import TemporaryDirectory
+from save_load_model import save_model
 
 
 def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs):
@@ -72,6 +73,8 @@ def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_da
                     best_val_acc = epoch_acc
                     torch.save(model.state_dict(), best_model_params_path)
 
+            if (epoch + 1) % 5 == 0:
+                save_model(model)
 
         time_elapsed = time.time() - since
         print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
