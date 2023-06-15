@@ -2,16 +2,22 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from google.cloud import storage
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 import torch
 from io import BytesIO
 from ecg_model.grad import ecg_grad
+from torchvision.utils import save_image
+from torch.utils import model_zoo
+
 
 def load_model():
-    latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
-    latest_model = torch.load(latest_model_path_to_save)
-    return latest_model
+    # latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
+    # latest_model = torch.load(latest_model_path_to_save)
+    link = "https://storage.googleapis.com/ecg_photo/final_models/model_20230614-172857"
+    model = model_zoo.load_url(link)
+    torch.save(model, "ecg_model/api/model.pt")
+    print(type(model))
+    return model
 
 def transformation(image):
     transform = Compose([
@@ -19,7 +25,6 @@ def transformation(image):
         ToTensor(),
         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-
     return transform(image)
 
 app = FastAPI()
@@ -55,8 +60,14 @@ async def predict(file: UploadFile):
     predicted_label = predicted.item()
     predicted_class = class_names[predicted_label]
     print(predicted_class)
-    grad_image = ecg_grad(app.state.model, img_processed, X_img)
-    # print(type(grad_image))
-    response = FileResponse(grad_image)
+    ecg_grad(app.state.model, img_processed, X_img)
+    # print(f"GRAD1 :{type(grad_image)}")
+    # save_image(grad_image[0], 'ecg_model/api/grad_img.jpg')
+    # print(f"GRAD :{type(grad_image)}")
+    # grad_image.save("ecg_model/api/grad_img.jpg")
+    response = FileResponse("ecg_model/api/grad_cam.jpg")
     response.headers["prediction"] = predicted_class
     return response
+
+if __name__ == '__main__':
+    load_model()
