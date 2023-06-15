@@ -1,5 +1,5 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
@@ -50,11 +50,9 @@ async def predict(file: UploadFile, model_url):
     _, predicted = torch.max(output, 1)
     predicted_label = predicted.item()
     predicted_class = class_names[predicted_label]
-    print(predicted_class)
+
     ecg_grad(app.state.model, img_processed, X_img)
+
     response = FileResponse("ecg_model/api/grad_cam.jpg")
     response.headers["prediction"] = predicted_class
     return response
-
-if __name__ == '__main__':
-    load_model()

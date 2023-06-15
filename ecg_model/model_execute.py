@@ -14,7 +14,7 @@ def execute_model():
     test_split = 0.15
 
     transform = Compose([
-        Resize((224, 224)),
+        Resize((448, 448)),
         ToTensor(),
         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -36,14 +36,23 @@ def execute_model():
 
     model = models.resnet18(weights='IMAGENET1K_V1')
     num_ftrs = model.fc.in_features
-    model.fc = torch.nn.Linear(num_ftrs, 2)
+    fc = torch.nn.Sequential(
+        torch.nn.Linear(num_ftrs, 128),
+        torch.nn.ReLU(inplace=True),
+        torch.nn.Dropout(0.6),
+        torch.nn.Linear(128, 32),
+        torch.nn.ReLU(inplace=True),
+        torch.nn.Dropout(0.6),
+        torch.nn.Linear(32, 2)
+    )
+    model.fc = fc
     model = model.to(device)
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0003)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.3)
 
-    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=10)
+    model = train_model(model, criterion, optimizer, scheduler, train_dataloader, val_dataloader, device, num_epochs=20)
 
     evaluate_model(model, criterion, test_dataloader, device)
 

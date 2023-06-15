@@ -67,8 +67,8 @@ def ecg_grad(model, input_img_pred, image):
     # Plot the heatmap on the same axes,
     # but with alpha < 1 (this defines the transparency of the heatmap)
     ax.imshow(overlay, alpha=0.4, interpolation='nearest')
-
-    imagen = plt.savefig('ecg_model/api/grad_cam.jpg')
+    # plt.figure(figsize=)-)
+    imagen = plt.savefig('ecg_model/api/grad_cam.jpg',bbox_inches='tight')
 
     # Remove the hooks when done
     backward_hook.remove()

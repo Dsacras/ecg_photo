@@ -68,9 +68,6 @@ def load_model():
     return None
 
 def load_model_url(url):
-    # latest_model_path_to_save = "ecg_model/api/model_20230614-124525.pt"
-    # latest_model = torch.load(latest_model_path_to_save)
-    link = url
-    model = model_zoo.load_url(link)
-    torch.save(model, "ecg_model/api/model.pt")
+    model = model_zoo.load_url(url)
+    # torch.save(model, "ecg_model/api/model.pt")
     return model
