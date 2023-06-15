@@ -45,14 +45,15 @@ async def predict(file: UploadFile, model_url):
     # Forward pass
     with torch.no_grad():
         output = app.state.model(img_processed)
-
-    # Get the predicted class label
-    _, predicted = torch.max(output, 1)
-    predicted_label = predicted.item()
-    predicted_class = class_names[predicted_label]
+        probabilities = torch.nn.functional.softmax(output, dim=1)
+        predicted_prob, predicted_label = torch.max(probabilities, 1)
+        predicted_label = predicted_label.item()
+        predicted_class = class_names[predicted_label]
+        predicted_prob = predicted_prob.item()
 
     ecg_grad(app.state.model, img_processed, X_img)
 
     response = FileResponse("ecg_model/api/grad_cam.jpg")
     response.headers["prediction"] = predicted_class
+    response.headers["confidence"] = str(predicted_prob)
     return response
