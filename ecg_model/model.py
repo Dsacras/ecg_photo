@@ -73,7 +73,7 @@ def train_model(model, criterion, optimizer, scheduler, train_dataloader, val_da
                     best_val_acc = epoch_acc
                     torch.save(model.state_dict(), best_model_params_path)
 
-            if (epoch + 1) % 5 == 0:
+            if (epoch + 1) % 3 == 0:
                 save_model(model)
 
         time_elapsed = time.time() - since
